@@ -61,25 +61,6 @@ const { data: pluginMenu } = await useAsyncData<PluginMenuItem[]>(
         </UiNavGroup>
       </nav>
 
-      <!-- Footer -->
-      <div class="px-5 py-4 border-t border-white/10">
-        <p class="text-xs font-semibold text-white/80 tracking-tight">WP-2026 <span class="text-pit-muted font-normal">| V2.0</span></p>
-        <p class="text-[10px] text-pit-muted mt-0.5">a Project by Peter Päffgen</p>
-        <p class="text-[10px] text-pit-muted/60 mt-0.5">© 2026 | Manderscheid · Vulkaneifel</p>
-        <a
-          href="https://www.paeffgen-it.de"
-          target="_blank"
-          rel="noopener"
-          class="text-[10px] text-pit-muted/50 hover:text-pit-muted transition-colors"
-        >www.paeffgen-it.de</a>
-        <!-- Notausgang -->
-        <a
-          :href="`${wpAdminBase}/wp-admin/`"
-          target="_blank"
-          rel="noopener"
-          class="block mt-2 text-[9px] text-white/10 hover:text-white/30 transition-colors"
-        >wp-admin</a>
-      </div>
     </aside>
 
     <!-- Main -->
@@ -97,6 +78,32 @@ const { data: pluginMenu } = await useAsyncData<PluginMenuItem[]>(
       <main class="flex-1 overflow-y-auto p-6">
         <slot />
       </main>
+
+      <!-- Footer -->
+      <footer class="flex-shrink-0 border-t border-white/[0.06] bg-pit-dark px-6 py-2.5 flex items-center justify-between">
+        <p class="text-[11px] text-pit-muted/70">
+          <span class="font-semibold text-white/60">WP-2026</span>
+          <span class="mx-1.5 text-white/20">|</span>
+          V2.0 · a Project by Peter Päffgen
+          <span class="mx-1.5 text-white/20">·</span>
+          © 2026 Manderscheid · Vulkaneifel
+        </p>
+        <div class="flex items-center gap-4">
+          <a
+            href="https://www.paeffgen-it.de"
+            target="_blank"
+            rel="noopener"
+            class="text-[11px] text-pit-muted/50 hover:text-pit-muted transition-colors"
+          >www.paeffgen-it.de</a>
+          <!-- Notausgang -->
+          <a
+            :href="`${wpAdminBase}/wp-admin/`"
+            target="_blank"
+            rel="noopener"
+            class="text-[9px] text-white/10 hover:text-white/25 transition-colors"
+          >wp-admin</a>
+        </div>
+      </footer>
     </div>
   </div>
 </template>
