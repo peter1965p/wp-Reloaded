@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { decodeHtml } from '~/composables/useWordPress'
 definePageMeta({ title: 'Slider' })
 
 interface Slide {
@@ -67,7 +68,7 @@ async function deleteSlide(id: number) {
           </div>
 
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-white truncate">{{ slide.title.rendered }}</p>
+            <p class="text-sm font-medium text-white truncate">{{ decodeHtml(slide.title.rendered) }}</p>
             <p class="text-xs text-pit-muted truncate mt-0.5">{{ slide.slide_data?.subtitle || '—' }}</p>
           </div>
 

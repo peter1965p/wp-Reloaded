@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { decodeHtml } from '~/composables/useWordPress'
 definePageMeta({ title: 'Seiten' })
 
 const { fetchPages } = useWordPress()
@@ -56,7 +57,7 @@ async function deletePage(id: number) {
         class="flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.02] transition-colors group"
       >
         <div class="flex-1 min-w-0 mr-4">
-          <span class="text-sm font-medium text-white block truncate">{{ page.title.rendered }}</span>
+          <span class="text-sm font-medium text-white block truncate">{{ decodeHtml(page.title.rendered) }}</span>
           <p class="text-xs text-pit-muted mt-0.5">{{ formatDate(page.date) }}</p>
         </div>
         <div class="flex items-center gap-2">

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { decodeHtml } from '~/composables/useWordPress'
 definePageMeta({ title: 'Beiträge' })
 
 const { fetchPosts } = useWordPress()
@@ -74,7 +75,7 @@ async function toggleStatus(id: number, current: string) {
       >
         <div class="flex-1 min-w-0 mr-4">
           <NuxtLink :to="`/posts/${post.slug}`" class="text-sm font-medium text-white hover:text-pit-blue transition-colors block truncate">
-            {{ post.title.rendered }}
+            {{ decodeHtml(post.title.rendered) }}
           </NuxtLink>
           <p class="text-xs text-pit-muted mt-0.5">{{ formatDate(post.date) }}</p>
         </div>

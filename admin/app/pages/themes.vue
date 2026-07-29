@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Search, Star, Trash2, CheckCircle, ChevronLeft, ChevronRight, Download, Palette, Sparkles, X } from 'lucide-vue-next'
+import { decodeHtml } from '~/composables/useWordPress'
 
 definePageMeta({ title: 'Themes' })
 
 interface WpTheme {
   stylesheet: string
   template: string
-  status: { value: 'active' | 'inactive' }
+  status: 'active' | 'inactive'
   name: { rendered: string }
   description: { rendered: string }
   author: { rendered: string }
@@ -71,8 +72,8 @@ async function applyDesign() {
   }
 }
 
-const activeTheme   = computed(() => themes.value?.find(t => t.status?.value === 'active'))
-const inactiveThemes = computed(() => themes.value?.filter(t => t.status?.value !== 'active') ?? [])
+const activeTheme    = computed(() => themes.value?.find(t => t.status === 'active'))
+const inactiveThemes = computed(() => themes.value?.filter(t => t.status !== 'active') ?? [])
 const installedSlugs = computed(() => new Set(themes.value?.map(t => t.stylesheet) ?? []))
 
 async function activateTheme(theme: WpTheme) {
@@ -184,7 +185,7 @@ function fmtInstalls(n: number) {
           </div>
         </div>
         <div class="flex-1 min-w-0">
-          <h3 class="text-base font-semibold text-white mb-1">{{ activeTheme.name?.rendered }}</h3>
+          <h3 class="text-base font-semibold text-white mb-1">{{ decodeHtml(activeTheme.name?.rendered ?? '') }}</h3>
           <p class="text-xs text-pit-muted/60 mb-2">v{{ activeTheme.version }} · von {{ activeTheme.author?.rendered?.replace(/<[^>]*>/g, '') }}</p>
           <p class="text-xs text-pit-muted leading-relaxed line-clamp-2" v-html="activeTheme.description?.rendered" />
           <button
@@ -312,7 +313,7 @@ function fmtInstalls(n: number) {
             </div>
           </div>
           <div class="px-3 py-2.5">
-            <p class="text-xs font-medium text-white/70 truncate">{{ t.name?.rendered }}</p>
+            <p class="text-xs font-medium text-white/70 truncate">{{ decodeHtml(t.name?.rendered ?? '') }}</p>
             <p class="text-[10px] text-pit-muted">v{{ t.version }}</p>
           </div>
         </div>

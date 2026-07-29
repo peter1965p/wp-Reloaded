@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { FileText, File, CheckCircle, PenLine, Image, Tag } from 'lucide-vue-next'
+import { decodeHtml } from '~/composables/useWordPress'
 
 definePageMeta({ title: 'Dashboard' })
 
@@ -104,7 +105,7 @@ function formatDate(date: string) {
               :to="`/posts/${post.slug}`"
               class="text-sm font-medium text-slate-200 group-hover:text-blue-400 transition-colors truncate block"
             >
-              {{ post.title.rendered }}
+              {{ decodeHtml(post.title.rendered) }}
             </NuxtLink>
             <p class="text-xs text-slate-600 mt-0.5">{{ formatDate(post.date) }}</p>
           </div>
