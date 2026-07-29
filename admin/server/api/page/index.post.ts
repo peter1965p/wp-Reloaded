@@ -1,0 +1,11 @@
+export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig()
+  const body = await readBody(event)
+  const credentials = Buffer.from(`${config.wpUser}:${config.wpAppPassword}`).toString('base64')
+
+  return $fetch(`${config.public.wpApiBase}/pages`, {
+    method: 'POST',
+    headers: { 'Authorization': `Basic ${credentials}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+})

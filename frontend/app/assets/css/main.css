@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { @apply bg-pit-bg text-pit-text font-sans antialiased scroll-smooth; }
+  body { @apply bg-pit-bg; }
+}
+
+@layer components {
+  .pit-btn-primary {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-pit-blue hover:bg-pit-blue-h text-white font-semibold text-sm transition-all duration-200 shadow-lg shadow-blue-500/20;
+  }
+  .pit-btn-ghost {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 text-pit-sub hover:text-white font-medium text-sm transition-all duration-200;
+  }
+  .pit-card {
+    @apply bg-pit-card border border-white/[0.07] rounded-card;
+  }
+  .pit-section {
+    @apply py-20 px-6 max-w-6xl mx-auto;
+  }
+  .pit-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+  }
+  /* Prose overrides für WP content */
+  .wp-content { @apply prose prose-invert prose-base max-w-none; }
+  .wp-content p { @apply text-pit-sub leading-relaxed; }
+  .wp-content h1, .wp-content h2, .wp-content h3 { @apply text-pit-text; }
+  .wp-content a { @apply text-pit-blue no-underline hover:underline; }
+}

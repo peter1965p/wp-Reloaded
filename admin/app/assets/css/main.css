@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { @apply bg-pit-bg text-pit-text font-sans antialiased; }
+  body { @apply bg-pit-bg; }
+  * { @apply border-pit-border; }
+}
+
+@layer components {
+  .pit-card {
+    @apply bg-pit-card border border-white/10 rounded-card;
+  }
+  .pit-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .pit-badge-green  { @apply pit-badge bg-pit-green/15 text-pit-green; }
+  .pit-badge-blue   { @apply pit-badge bg-pit-blue/15 text-pit-blue; }
+  .pit-badge-red    { @apply pit-badge bg-pit-red/15 text-pit-red; }
+  .pit-badge-muted  { @apply pit-badge bg-white/5 text-pit-muted; }
+}

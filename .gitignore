@@ -1,0 +1,20 @@
+# Node
+node_modules/
+*.log
+
+# Nuxt
+.nuxt/
+.output/
+dist/
+
+# Env
+.env
+.DS_Store
+
+# WordPress — alles ignorieren, nur Custom-Plugin behalten
+wordpress/*
+!wordpress/wp-content/
+wordpress/wp-content/*
+!wordpress/wp-content/plugins/
+wordpress/wp-content/plugins/*
+!wordpress/wp-content/plugins/wp2026-slider/
