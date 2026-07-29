@@ -133,6 +133,29 @@ add_action('rest_api_init', function () {
         },
     ]);
 
+    // POST: Update-Check erzwingen (löscht Transient + ruft wp.org ab)
+    register_rest_route('wp2026/v1', '/check-plugin-updates', [
+        'methods'             => 'POST',
+        'permission_callback' => fn() => current_user_can('update_plugins'),
+        'callback'            => function () {
+            delete_site_transient('update_plugins');
+            wp_update_plugins();
+
+            $updates = get_site_transient('update_plugins');
+            $result  = [];
+            if (!empty($updates->response) && is_array($updates->response)) {
+                foreach ($updates->response as $file => $data) {
+                    $result[$file] = [
+                        'new_version' => $data->new_version ?? '',
+                        'url'         => $data->url         ?? '',
+                        'slug'        => $data->slug        ?? '',
+                    ];
+                }
+            }
+            return rest_ensure_response($result);
+        },
+    ]);
+
     // POST: Plugin aktualisieren
     register_rest_route('wp2026/v1', '/plugin-updates', [
         'methods'             => 'POST',

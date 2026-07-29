@@ -33,11 +33,25 @@ const [{ data: plugins, refresh }, { data: updates, refresh: refreshUpdates }] =
   useAsyncData('wp-plugin-updates', () => $fetch<Record<string, PluginUpdate>>('/api/plugin-updates')),
 ])
 
-const toggling   = ref<string | null>(null)
-const deleting   = ref<string | null>(null)
-const installing = ref<string | null>(null)
-const updating   = ref<string | null>(null)
-const actionErr  = ref('')
+const toggling    = ref<string | null>(null)
+const deleting    = ref<string | null>(null)
+const installing  = ref<string | null>(null)
+const updating    = ref<string | null>(null)
+const checking    = ref(false)
+const actionErr   = ref('')
+
+async function checkForUpdates() {
+  checking.value  = true
+  actionErr.value = ''
+  try {
+    const fresh = await $fetch<Record<string, PluginUpdate>>('/api/plugin-updates-check', { method: 'POST' })
+    if (updates.value !== undefined) updates.value = fresh
+  } catch (e: unknown) {
+    actionErr.value = 'Update-Prüfung fehlgeschlagen: ' + ((e as Error)?.message ?? 'Fehler')
+  } finally {
+    checking.value = false
+  }
+}
 
 function getUpdate(plugin: WpPlugin): PluginUpdate | null {
   return updates.value?.[plugin.plugin] ?? null
@@ -176,6 +190,21 @@ function pluginIcon(p: WpOrgPlugin) {
 <template>
   <div class="max-w-4xl space-y-5">
     <div v-if="actionErr" class="px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-[6px] text-sm text-red-400">{{ actionErr }}</div>
+
+    <!-- Toolbar -->
+    <div class="flex items-center justify-between">
+      <h2 class="text-sm font-medium text-slate-400">
+        {{ plugins?.length ?? 0 }} Plugins installiert
+      </h2>
+      <button
+        @click="checkForUpdates"
+        :disabled="checking"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium border border-white/10 text-slate-300 hover:text-white hover:border-white/20 hover:bg-white/5 transition-all disabled:opacity-40"
+      >
+        <RefreshCw class="w-3.5 h-3.5" :class="checking ? 'animate-spin' : ''" />
+        {{ checking ? 'Prüfe auf Updates…' : 'Auf Updates prüfen' }}
+      </button>
+    </div>
 
     <!-- Plugin installieren -->
     <div class="pit-card overflow-hidden">
