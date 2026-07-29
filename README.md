@@ -15,9 +15,11 @@ Stattdessen: ein komplett eigenständiger Admin- und Frontend-Layer, gebaut mit 
 - **Plugins:** Volle Kompatibilität zum offiziellen WordPress.org-Plugin-Katalog – Installation direkt aus dem Admin-Interface heraus, wie gewohnt, nur eben nicht in wp-admin.
 - **Setup:** Ein Installer (`setup.js`) übernimmt Ersteinrichtung und Datenbank-Konfiguration, wie man es von einer klassischen WordPress-Installation kennt.
 
-## Warum ??? 
+## Warum
 
-WordPress 7.0 hat mit WPGraphQL als offiziellem Plugin, der Abilities-API und dem MCP-Adapter die Bausteine für echtes Headless-WordPress geliefert – aber kein fertiges, sofort nutzbares Ergebnis daraus gebaut. WP-Reloaded ist genau das: die Bausteine zusammengesetzt zu einem System, das nach außen nicht mehr wie eine WordPress-Installation aussieht oder sich so anfühlt, aber im Kern eines bleibt.
+Keine neuen Plugins, keine Zusatz-APIs, kein Extra-Werkzeug aus dem WordPress-Ökosystem. WP-Reloaded nutzt ausschließlich das, was WordPress seit Jahren eingebaut mitbringt: die reguläre REST-API. Mehr war nicht nötig.
+
+WordPress von Grund auf neu gedacht, nicht neu erfunden: Der Kern bleibt, weil er robust ist. Alles, was WordPress alt, langsam und angestaubt wirken lässt, ist ersetzt – durch etwas, das WordPress selbst nie gebaut hat.
 
 Kein neues CMS. Kein Fork. WordPress, neu zusammengesteckt.
 
@@ -25,4 +27,4 @@ Kein neues CMS. Kein Fork. WordPress, neu zusammengesteckt.
 
 **Stack:** WordPress (PHP/MySQL) · Nuxt 4 · Vue 3 · TypeScript · Tailwind CSS
 
-**Autor:** Peter Päffgen — https://paeffgen-it.de
+**Autor:** Peter Päffgen — [Päffgen IT](https://paeffgen-it.de)
