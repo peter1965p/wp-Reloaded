@@ -4,6 +4,7 @@ const DESIGN_KEYS = [
   'pit_font_family',
   'pit_border_radius',
   'pit_header_style',
+  'pit_slider_enabled',
 ]
 
 export default defineEventHandler(async () => {
@@ -16,11 +17,12 @@ export default defineEventHandler(async () => {
   })
 
   const defaults: Record<string, string> = {
-    pit_primary_color: '#3b82f6',
-    pit_accent_color:  '#8b5cf6',
-    pit_font_family:   'Inter',
-    pit_border_radius: '8',
-    pit_header_style:  'transparent',
+    pit_primary_color:  '#3b82f6',
+    pit_accent_color:   '#8b5cf6',
+    pit_font_family:    'Inter',
+    pit_border_radius:  '8',
+    pit_header_style:   'transparent',
+    pit_slider_enabled: '1',
   }
 
   const result: Record<string, string> = {}

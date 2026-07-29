@@ -5,7 +5,8 @@ useSeoMeta({
 })
 
 const config = useRuntimeConfig()
-const base = config.public.wpApiBase as string
+const base    = config.public.wpApiBase as string
+const baseRoot = base.replace('/wp/v2', '')
 
 interface Post {
   id: number; slug: string
@@ -23,12 +24,15 @@ interface Slide {
   featured_image_url: string | null
 }
 
-const [{ data: posts }, { data: slides }] = await Promise.all([
+const [{ data: posts }, { data: slides }, { data: sliderStatus }] = await Promise.all([
   useAsyncData('home-posts', () =>
     $fetch<Post[]>(`${base}/posts?per_page=3&status=publish&_embed=1`)
   ),
   useAsyncData('home-slides', () =>
     $fetch<Slide[]>(`${base}/slides?per_page=20&orderby=menu_order&order=asc&status=publish`)
+  ),
+  useAsyncData('slider-status', () =>
+    $fetch<{ enabled: boolean }>(`${baseRoot}/wp2026/v1/slider-status`).catch(() => ({ enabled: true }))
   ),
 ])
 
@@ -58,8 +62,8 @@ const leistungen = [
 
 <template>
   <div>
-    <!-- Slider (wenn Slides vorhanden) -->
-    <HeroSlider v-if="slides?.length" :slides="slides" />
+    <!-- Slider (wenn Slides vorhanden und global aktiviert) -->
+    <HeroSlider v-if="slides?.length && sliderStatus?.enabled !== false" :slides="slides" />
 
     <!-- Hero -->
     <section class="relative overflow-hidden">

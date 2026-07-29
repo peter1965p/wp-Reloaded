@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: WP-2026 Slider
- * Description: Headless Slider — Custom Post Type mit REST API für WP-2026 | V7.8
- * Version: 1.0.0
+ * Description: Headless Slider — Custom Post Type mit REST API für WP-2026 | V2.0
+ * Version: 2.0.0
  * Author: Peter Päffgen
  */
 
@@ -84,11 +84,12 @@ add_action('save_post_pit_slide', function ($post_id) {
 // Design-Einstellungen als WP-Optionen registrieren
 add_action('init', function () {
     $design_options = [
-        'pit_primary_color'  => ['default' => '#3b82f6', 'sanitize' => 'sanitize_hex_color'],
-        'pit_accent_color'   => ['default' => '#8b5cf6', 'sanitize' => 'sanitize_hex_color'],
-        'pit_font_family'    => ['default' => 'Inter',   'sanitize' => 'sanitize_text_field'],
-        'pit_border_radius'  => ['default' => '8',       'sanitize' => 'absint'],
-        'pit_header_style'   => ['default' => 'transparent', 'sanitize' => 'sanitize_text_field'],
+        'pit_primary_color'   => ['default' => '#3b82f6',     'sanitize' => 'sanitize_hex_color'],
+        'pit_accent_color'    => ['default' => '#8b5cf6',     'sanitize' => 'sanitize_hex_color'],
+        'pit_font_family'     => ['default' => 'Inter',       'sanitize' => 'sanitize_text_field'],
+        'pit_border_radius'   => ['default' => '8',           'sanitize' => 'absint'],
+        'pit_header_style'    => ['default' => 'transparent', 'sanitize' => 'sanitize_text_field'],
+        'pit_slider_enabled'  => ['default' => '1',           'sanitize' => 'sanitize_text_field'],
     ];
     foreach ($design_options as $key => $cfg) {
         register_setting('general', $key, [
@@ -98,6 +99,15 @@ add_action('init', function () {
             'sanitize_callback' => $cfg['sanitize'],
         ]);
     }
+});
+
+// Öffentlicher REST-Endpunkt: Slider-Status ohne Auth abrufbar
+add_action('rest_api_init', function () {
+    register_rest_route('wp2026/v1', '/slider-status', [
+        'methods'             => 'GET',
+        'callback'            => fn() => rest_ensure_response(['enabled' => get_option('pit_slider_enabled', '1') !== '0']),
+        'permission_callback' => '__return_true',
+    ]);
 });
 
 // REST API: Alle Felder öffentlich zugänglich im Response

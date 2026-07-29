@@ -37,7 +37,7 @@ import { Wifi } from 'lucide-vue-next'
 
       <!-- Footer -->
       <div class="px-5 py-4 border-t border-white/10">
-        <p class="text-xs font-semibold text-white/80 tracking-tight">WP-2026 <span class="text-pit-muted font-normal">| V7.8</span></p>
+        <p class="text-xs font-semibold text-white/80 tracking-tight">WP-2026 <span class="text-pit-muted font-normal">| V2.0</span></p>
         <p class="text-[10px] text-pit-muted mt-0.5">by Peter Päffgen</p>
       </div>
     </aside>

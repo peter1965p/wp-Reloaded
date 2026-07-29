@@ -111,7 +111,7 @@ const nav = [
 
         <div class="pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
           <p class="text-xs text-pit-muted">© {{ new Date().getFullYear() }} Päffgen IT. Alle Rechte vorbehalten.</p>
-          <p class="text-xs text-pit-muted/50">WP-2026 | V7.8 by Peter Päffgen</p>
+          <p class="text-xs text-pit-muted/50">WP-2026 | V2.0 by Peter Päffgen</p>
         </div>
       </div>
     </footer>
