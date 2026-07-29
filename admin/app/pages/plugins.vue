@@ -54,7 +54,9 @@ async function checkForUpdates() {
 }
 
 function getUpdate(plugin: WpPlugin): PluginUpdate | null {
-  return updates.value?.[plugin.plugin] ?? null
+  // WP REST API liefert Keys ohne .php, der Update-Transient mit .php
+  const key = plugin.plugin.endsWith('.php') ? plugin.plugin : plugin.plugin + '.php'
+  return updates.value?.[key] ?? updates.value?.[plugin.plugin] ?? null
 }
 
 const active   = computed(() => plugins.value?.filter(p => p.status === 'active') ?? [])
@@ -339,32 +341,41 @@ function pluginIcon(p: WpOrgPlugin) {
           v-for="p in active"
           :key="p.plugin"
           class="transition-colors group"
-          :class="getUpdate(p) ? 'bg-amber-500/[0.03] hover:bg-amber-500/[0.06]' : 'hover:bg-white/[0.02]'"
+          :class="getUpdate(p) ? 'hover:bg-amber-500/[0.04]' : 'hover:bg-white/[0.02]'"
         >
+          <!-- Update-Banner (nur wenn Update verfügbar) -->
+          <div
+            v-if="getUpdate(p)"
+            class="flex items-center justify-between px-5 py-2 bg-amber-500/10 border-b border-amber-500/15"
+          >
+            <div class="flex items-center gap-2 text-xs text-amber-400">
+              <RefreshCw class="w-3.5 h-3.5 flex-shrink-0" />
+              <span>
+                Update verfügbar:
+                <span class="font-semibold">v{{ getUpdate(p)!.new_version }}</span>
+                <span class="text-amber-400/60 ml-1">(aktuell v{{ p.version }})</span>
+              </span>
+            </div>
+            <button
+              @click="updatePlugin(p)"
+              :disabled="updating === p.plugin"
+              class="flex items-center gap-1.5 px-3 py-1 rounded text-[11px] font-semibold bg-amber-500 text-white hover:bg-amber-400 transition-colors disabled:opacity-50 flex-shrink-0"
+            >
+              <RefreshCw class="w-3 h-3" :class="updating === p.plugin ? 'animate-spin' : ''" />
+              {{ updating === p.plugin ? 'Wird aktualisiert…' : 'Jetzt aktualisieren' }}
+            </button>
+          </div>
+
           <!-- Haupt-Zeile -->
           <div class="flex items-center justify-between px-5 py-3.5">
             <div class="flex-1 min-w-0 mr-4">
-              <div class="flex items-center gap-2 flex-wrap">
+              <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-white">{{ p.name }}</span>
                 <span class="text-[10px] text-pit-muted bg-white/5 px-1.5 py-0.5 rounded">v{{ p.version }}</span>
-                <span v-if="getUpdate(p)" class="inline-flex items-center gap-1 text-[10px] font-medium text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-full">
-                  <RefreshCw class="w-2.5 h-2.5" />
-                  v{{ getUpdate(p)!.new_version }} verfügbar
-                </span>
               </div>
               <p class="text-[11px] text-pit-muted/60 mt-0.5">von {{ p.author?.replace(/<[^>]*>/g, '') }}</p>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
-              <!-- Update-Button: immer sichtbar wenn Update da -->
-              <button
-                v-if="getUpdate(p)"
-                @click="updatePlugin(p)"
-                :disabled="updating === p.plugin"
-                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[11px] font-semibold bg-amber-500/20 text-amber-300 hover:bg-amber-500/35 transition-colors disabled:opacity-40"
-              >
-                <RefreshCw class="w-3.5 h-3.5" :class="updating === p.plugin ? 'animate-spin' : ''" />
-                {{ updating === p.plugin ? 'Wird aktualisiert…' : 'Jetzt aktualisieren' }}
-              </button>
               <!-- Deaktivieren + Löschen: nur on hover -->
               <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
