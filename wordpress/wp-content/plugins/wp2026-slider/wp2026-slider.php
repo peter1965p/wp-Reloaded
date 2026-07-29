@@ -81,6 +81,25 @@ add_action('save_post_pit_slide', function ($post_id) {
     }
 });
 
+// Design-Einstellungen als WP-Optionen registrieren
+add_action('init', function () {
+    $design_options = [
+        'pit_primary_color'  => ['default' => '#3b82f6', 'sanitize' => 'sanitize_hex_color'],
+        'pit_accent_color'   => ['default' => '#8b5cf6', 'sanitize' => 'sanitize_hex_color'],
+        'pit_font_family'    => ['default' => 'Inter',   'sanitize' => 'sanitize_text_field'],
+        'pit_border_radius'  => ['default' => '8',       'sanitize' => 'absint'],
+        'pit_header_style'   => ['default' => 'transparent', 'sanitize' => 'sanitize_text_field'],
+    ];
+    foreach ($design_options as $key => $cfg) {
+        register_setting('general', $key, [
+            'type'              => 'string',
+            'default'           => $cfg['default'],
+            'show_in_rest'      => true,
+            'sanitize_callback' => $cfg['sanitize'],
+        ]);
+    }
+});
+
 // REST API: Alle Felder öffentlich zugänglich im Response
 add_filter('rest_prepare_pit_slide', function ($response, $post) {
     $thumb = get_the_post_thumbnail_url($post->ID, 'full');

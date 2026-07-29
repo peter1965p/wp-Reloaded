@@ -1,10 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --pit-primary: #3b82f6;
+  --pit-accent:  #8b5cf6;
+  --pit-radius:  8px;
+  --pit-font:    'Inter', system-ui, sans-serif;
+}
+
 @layer base {
-  html { @apply bg-pit-bg text-pit-text font-sans antialiased scroll-smooth; }
+  html { @apply bg-pit-bg text-pit-text antialiased scroll-smooth; font-family: var(--pit-font); }
   body { @apply bg-pit-bg; }
 }
 

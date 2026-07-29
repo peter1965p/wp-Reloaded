@@ -25,6 +25,10 @@ import { Wifi } from 'lucide-vue-next'
           <UiNavItem to="/categories" icon="Tag" label="Kategorien" />
           <UiNavItem to="/tags" icon="Hash" label="Tags" />
         </UiNavGroup>
+        <UiNavGroup label="Design">
+          <UiNavItem to="/themes" icon="Layers" label="Themes" />
+          <UiNavItem to="/design" icon="Palette" label="Design" />
+        </UiNavGroup>
         <UiNavGroup label="System">
           <UiNavItem to="/plugins" icon="Puzzle" label="Plugins" />
           <UiNavItem to="/settings" icon="Settings" label="Einstellungen" />
