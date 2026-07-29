@@ -101,6 +101,35 @@ add_action('init', function () {
     }
 });
 
+// WP Auth-Cookies für eingebettete Plugin-Seiten generieren
+add_action('rest_api_init', function () {
+    register_rest_route('wp2026/v1', '/admin-cookie', [
+        'methods'             => 'GET',
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback'            => function () {
+            $user_id = get_current_user_id();
+            $expiry  = time() + 2 * HOUR_IN_SECONDS;
+            return rest_ensure_response([
+                ['name' => AUTH_COOKIE,        'value' => wp_generate_auth_cookie($user_id, $expiry, 'auth')],
+                ['name' => SECURE_AUTH_COOKIE, 'value' => wp_generate_auth_cookie($user_id, $expiry, 'secure_auth')],
+                ['name' => LOGGED_IN_COOKIE,   'value' => wp_generate_auth_cookie($user_id, $expiry, 'logged_in')],
+            ]);
+        },
+    ]);
+});
+
+// WP-Admin-Chrome ausblenden wenn ?pit_embed=1 gesetzt ist
+add_action('admin_head', function () {
+    if (!isset($_GET['pit_embed'])) return;
+    echo '<style>
+        #wpadminbar,#adminmenuwrap,#adminmenuback,#wpfooter,
+        .update-nag,.updated.notice,.notice-warning,.notice-info { display:none!important }
+        #wpcontent { margin-left:0!important }
+        #wpbody { padding-top:0!important }
+        html,body { overflow-x:hidden }
+    </style>';
+});
+
 // Öffentlicher REST-Endpunkt: Slider-Status ohne Auth abrufbar
 add_action('rest_api_init', function () {
     register_rest_route('wp2026/v1', '/slider-status', [
