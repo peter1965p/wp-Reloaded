@@ -4,13 +4,17 @@ import { decodeHtml } from '~/composables/useWordPress'
 
 definePageMeta({ title: 'Dashboard' })
 
-const { fetchPosts } = useWordPress()
+
 
 const { data: stats } = await useAsyncData('dashboard-stats', () =>
   $fetch<{ posts: number; pages: number; media: number; categories: number; tags: number; published: number }>('/api/stats')
 )
 
-const { data: recentPosts } = await useAsyncData('recent-posts', () => fetchPosts({ per_page: 6 }))
+const { data: recentPosts } = await useAsyncData('recent-posts', () =>
+  $fetch<{ id: number; slug: string; title: { rendered: string }; status: string; date: string }[]>(
+    '/api/posts', { query: { per_page: 6, status: 'any' } }
+  )
+)
 
 const kpis = [
   { label: 'Beiträge',       key: 'posts',     icon: FileText,    color: 'text-blue-400',    bg: 'bg-blue-500/10' },
