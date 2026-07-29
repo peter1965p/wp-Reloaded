@@ -5,11 +5,12 @@ export interface PluginMenuItem {
 }
 
 export default defineEventHandler(async (): Promise<PluginMenuItem[]> => {
-  const config = useRuntimeConfig()
-  const base   = config.public.wpApiBase.replace('/wp/v2', '')
-  const creds  = Buffer.from(`${config.wpUser}:${config.wpAppPassword}`).toString('base64')
+  const config  = useRuntimeConfig()
+  const wpBase  = config.public.wpApiBase
+    .replace('/wp-json/wp/v2', '')
+    .replace('/wp/v2', '')
 
-  return $fetch<PluginMenuItem[]>(`${base}/wp2026/v1/admin-menu`, {
-    headers: { Authorization: `Basic ${creds}` },
-  }).catch(() => [])
+  const menuUrl = `${wpBase}/wp-content/plugins/wp2026-slider/wp2026-admin-menu.php`
+
+  return $fetch<PluginMenuItem[]>(menuUrl).catch(() => [])
 })
