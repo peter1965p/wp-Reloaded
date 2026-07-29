@@ -110,6 +110,56 @@ add_action('rest_api_init', function () {
     ]);
 });
 
+// Dynamisches Plugin-Admin-Menü: gibt von Plugins registrierte WP-Admin-Seiten zurück
+add_action('rest_api_init', function () {
+    register_rest_route('wp2026/v1', '/admin-menu', [
+        'methods'             => 'GET',
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback'            => function () {
+            // Admin-Hilfsfunktionen laden, damit add_menu_page() verfügbar ist
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+            global $menu, $submenu, $admin_page_hooks, $_registered_pages, $_parent_pages;
+            $menu              = [];
+            $submenu           = [];
+            $admin_page_hooks  = [];
+            $_registered_pages = [];
+            $_parent_pages     = [];
+
+            // Plugins ihre Menüs registrieren lassen
+            do_action('admin_menu', '');
+
+            // WP-Core-Seiten ausschließen
+            $core = [
+                'index.php', 'edit.php', 'upload.php', 'link-manager.php',
+                'edit-comments.php', 'themes.php', 'plugins.php', 'users.php',
+                'tools.php', 'options-general.php',
+            ];
+
+            $result = [];
+            foreach ((array) $menu as $item) {
+                if (empty($item[0]) || empty($item[2])) continue;
+                $slug = $item[2];
+                // Separatoren und Core-Seiten überspringen
+                if (str_starts_with($slug, 'separator')) continue;
+                if (in_array($slug, $core, true)) continue;
+                // Eigene WP-2026 Seiten überspringen
+                if (str_starts_with($slug, 'pit-') || str_starts_with($slug, 'wp2026')) continue;
+
+                $title = wp_strip_all_tags($item[0]);
+                if (!$title) continue;
+
+                $result[] = [
+                    'title' => $title,
+                    'page'  => $slug,
+                    'icon'  => $item[6] ?? '',
+                ];
+            }
+            return rest_ensure_response($result);
+        },
+    ]);
+});
+
 // REST API: Alle Felder öffentlich zugänglich im Response
 add_filter('rest_prepare_pit_slide', function ($response, $post) {
     $thumb = get_the_post_thumbnail_url($post->ID, 'full');

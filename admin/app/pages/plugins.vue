@@ -42,11 +42,12 @@ async function toggle(plugin: WpPlugin) {
   toggling.value = plugin.plugin
   actionErr.value = ''
   try {
-    await $fetch(`/api/plugins/${encodeURIComponent(plugin.plugin)}`, {
+    await $fetch(`/api/plugins/${plugin.plugin}`, {
       method: 'PUT',
       body: { status: plugin.status === 'active' ? 'inactive' : 'active' },
     })
     await refresh()
+    await refreshNuxtData('plugin-menu')
   } catch (e: unknown) {
     actionErr.value = (e as Error)?.message ?? 'Fehler'
   } finally {
@@ -59,8 +60,9 @@ async function deletePlugin(plugin: WpPlugin) {
   deleting.value  = plugin.plugin
   actionErr.value = ''
   try {
-    await $fetch(`/api/plugins/${encodeURIComponent(plugin.plugin)}`, { method: 'DELETE' })
+    await $fetch(`/api/plugins/${plugin.plugin}`, { method: 'DELETE' })
     await refresh()
+    await refreshNuxtData('plugin-menu')
   } catch (e: unknown) {
     actionErr.value = (e as Error)?.message ?? 'Fehler'
   } finally {
@@ -127,6 +129,7 @@ async function installPlugin(slug: string, name: string) {
   try {
     await $fetch('/api/plugins', { method: 'POST', body: { slug } })
     await refresh()
+    await refreshNuxtData('plugin-menu')
   } catch (e: unknown) {
     actionErr.value = `"${name}" fehlgeschlagen: ` + ((e as Error)?.message ?? 'Fehler')
   } finally {

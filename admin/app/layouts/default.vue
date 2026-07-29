@@ -1,5 +1,15 @@
 <script setup lang="ts">
-import { Wifi } from 'lucide-vue-next'
+import { Wifi, ExternalLink } from 'lucide-vue-next'
+
+interface PluginMenuItem { title: string; page: string; icon: string }
+
+const config      = useRuntimeConfig()
+const wpAdminBase = config.public.wpApiBase.replace('/wp-json/wp/v2', '').replace('/wp/v2', '')
+
+const { data: pluginMenu } = await useAsyncData<PluginMenuItem[]>(
+  'plugin-menu',
+  () => $fetch<PluginMenuItem[]>('/api/plugin-menu').catch(() => []),
+)
 </script>
 
 <template>
@@ -29,9 +39,35 @@ import { Wifi } from 'lucide-vue-next'
           <UiNavItem to="/themes" icon="Layers" label="Themes" />
           <UiNavItem to="/design" icon="Palette" label="Design" />
         </UiNavGroup>
+
+        <!-- Dynamische Plugin-Menüs -->
+        <UiNavGroup v-if="pluginMenu?.length" label="Erweiterungen">
+          <a
+            v-for="item in pluginMenu"
+            :key="item.page"
+            :href="`${wpAdminBase}/wp-admin/admin.php?page=${item.page}`"
+            target="_blank"
+            rel="noopener"
+            class="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors group"
+          >
+            <ExternalLink :size="15" class="flex-shrink-0 opacity-60 group-hover:opacity-100" />
+            <span class="truncate">{{ item.title }}</span>
+          </a>
+        </UiNavGroup>
+
         <UiNavGroup label="System">
           <UiNavItem to="/plugins" icon="Puzzle" label="Plugins" />
           <UiNavItem to="/settings" icon="Settings" label="Einstellungen" />
+          <!-- WP Admin Direktlink -->
+          <a
+            :href="`${wpAdminBase}/wp-admin/`"
+            target="_blank"
+            rel="noopener"
+            class="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors group"
+          >
+            <ExternalLink :size="15" class="flex-shrink-0 opacity-60 group-hover:opacity-100" />
+            <span>WP Admin</span>
+          </a>
         </UiNavGroup>
       </nav>
 
