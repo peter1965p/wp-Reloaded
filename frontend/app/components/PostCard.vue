@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const decodeHtml = (s: string) => (s ?? '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#039;/g, "'")
+
 interface Post {
   id: number
   slug: string
@@ -28,7 +30,7 @@ function stripHtml(html: string) {
       <time class="text-xs text-pit-muted">{{ formatDate(post.date) }}</time>
     </div>
     <h3 class="text-base font-semibold text-white group-hover:text-pit-blue transition-colors mb-2 line-clamp-2">
-      {{ post.title.rendered }}
+      {{ decodeHtml(post.title.rendered) }}
     </h3>
     <p class="text-sm text-pit-sub leading-relaxed line-clamp-3 flex-1">
       {{ stripHtml(post.excerpt.rendered) }}

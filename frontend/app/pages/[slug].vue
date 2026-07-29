@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const decodeHtml = (s: string) => (s ?? '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#039;/g, "'")
+
 interface WpPage {
   id: number
   slug: string
@@ -34,7 +36,7 @@ useSeoMeta({
     </NuxtLink>
 
     <article v-if="page">
-      <h1 class="text-3xl font-bold text-white mb-8">{{ page.title.rendered }}</h1>
+      <h1 class="text-3xl font-bold text-white mb-8">{{ decodeHtml(page.title.rendered) }}</h1>
       <div class="h-px bg-white/[0.07] mb-8" />
       <div class="wp-content" v-html="page.content.rendered" />
     </article>

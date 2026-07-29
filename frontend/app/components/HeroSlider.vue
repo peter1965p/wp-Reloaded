@@ -1,4 +1,14 @@
 <script setup lang="ts">
+function decodeHtml(str: string): string {
+  return (str ?? '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&apos;/g, "'")
+}
+
 interface Slide {
   id: number
   title: { rendered: string }
@@ -64,7 +74,7 @@ const bg    = computed(() => slide.value?.featured_image_url || slide.value?.sli
           <div class="max-w-6xl mx-auto px-6 sm:px-12 w-full">
             <div class="max-w-xl">
               <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4 drop-shadow-lg">
-                {{ s.title.rendered }}
+                {{ decodeHtml(s.title.rendered) }}
               </h2>
               <p v-if="s.slide_data?.subtitle" class="text-base sm:text-lg text-white/70 mb-8 leading-relaxed">
                 {{ s.slide_data.subtitle }}

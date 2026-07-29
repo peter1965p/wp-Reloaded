@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const decodeHtml = (s: string) => (s ?? '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#039;/g, "'")
+
 interface Post {
   id: number
   slug: string
@@ -50,7 +52,7 @@ function formatDate(d: string) {
 
       <!-- Title -->
       <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight mb-10">
-        {{ post.title.rendered }}
+        {{ decodeHtml(post.title.rendered) }}
       </h1>
 
       <!-- Divider -->
