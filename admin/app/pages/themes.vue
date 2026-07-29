@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Search, Star, Trash2, CheckCircle, ChevronLeft, ChevronRight, Download } from 'lucide-vue-next'
+import { Search, Star, Trash2, CheckCircle, ChevronLeft, ChevronRight, Download, Palette, Sparkles, X } from 'lucide-vue-next'
 
 definePageMeta({ title: 'Themes' })
 
@@ -31,7 +31,45 @@ const { data: themes, refresh } = await useAsyncData('wp-themes', () =>
 const installing  = ref<string | null>(null)
 const activating  = ref<string | null>(null)
 const deleting    = ref<string | null>(null)
+const analyzing   = ref<string | null>(null)
 const actionErr   = ref('')
+
+// ── Design-Import ─────────────────────────────────────────────────────────────
+interface AnalyzeResult {
+  ok: boolean
+  source: 'theme.json' | 'style.css' | 'none'
+  themeName: string
+  colors: string[]
+  fonts: string[]
+  tokens: Record<string, string>
+}
+const importResult  = ref<AnalyzeResult | null>(null)
+const importApplied = ref(false)
+
+async function analyzeTheme(stylesheet: string) {
+  analyzing.value = stylesheet
+  actionErr.value = ''
+  importResult.value = null
+  importApplied.value = false
+  try {
+    const res = await $fetch<AnalyzeResult>(`/api/themes/${encodeURIComponent(stylesheet)}/analyze`)
+    importResult.value = res
+  } catch (e: unknown) {
+    actionErr.value = 'Analyse fehlgeschlagen: ' + ((e as Error)?.message ?? 'Fehler')
+  } finally {
+    analyzing.value = null
+  }
+}
+
+async function applyDesign() {
+  if (!importResult.value?.tokens) return
+  try {
+    await $fetch('/api/design', { method: 'POST', body: importResult.value.tokens })
+    importApplied.value = true
+  } catch (e: unknown) {
+    actionErr.value = 'Design konnte nicht übernommen werden: ' + ((e as Error)?.message ?? '')
+  }
+}
 
 const activeTheme   = computed(() => themes.value?.find(t => t.status?.value === 'active'))
 const inactiveThemes = computed(() => themes.value?.filter(t => t.status?.value !== 'active') ?? [])
@@ -145,10 +183,85 @@ function fmtInstalls(n: number) {
             <Star class="w-8 h-8 opacity-30" />
           </div>
         </div>
-        <div>
+        <div class="flex-1 min-w-0">
           <h3 class="text-base font-semibold text-white mb-1">{{ activeTheme.name?.rendered }}</h3>
           <p class="text-xs text-pit-muted/60 mb-2">v{{ activeTheme.version }} · von {{ activeTheme.author?.rendered?.replace(/<[^>]*>/g, '') }}</p>
-          <p class="text-xs text-pit-muted leading-relaxed line-clamp-3" v-html="activeTheme.description?.rendered" />
+          <p class="text-xs text-pit-muted leading-relaxed line-clamp-2" v-html="activeTheme.description?.rendered" />
+          <button
+            @click="analyzeTheme(activeTheme.stylesheet)"
+            :disabled="analyzing === activeTheme.stylesheet"
+            class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-medium bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors disabled:opacity-40"
+          >
+            <Palette class="w-3.5 h-3.5" />
+            {{ analyzing === activeTheme.stylesheet ? 'Analysiere…' : 'Design übernehmen' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Import-Ergebnis Panel -->
+      <div v-if="importResult" class="mx-5 mb-5 border border-white/8 rounded-[8px] overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 bg-white/[0.02] border-b border-white/8">
+          <div class="flex items-center gap-2">
+            <Sparkles class="w-4 h-4 text-purple-400" />
+            <span class="text-xs font-semibold text-white">
+              {{ importResult.ok ? `Design aus ${importResult.source} erkannt` : 'Kein Design gefunden' }}
+            </span>
+            <span class="text-[10px] text-pit-muted">{{ importResult.themeName }}</span>
+          </div>
+          <button @click="importResult = null" class="text-pit-muted hover:text-white transition-colors">
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <div v-if="importResult.ok" class="p-4 space-y-3">
+          <!-- Farben -->
+          <div v-if="importResult.colors.length">
+            <p class="text-[10px] font-medium text-pit-muted uppercase tracking-wider mb-2">Erkannte Farben</p>
+            <div class="flex gap-2 flex-wrap">
+              <div v-for="(c, i) in importResult.colors" :key="c" class="flex flex-col items-center gap-1">
+                <div :style="{ background: c }" class="w-8 h-8 rounded-[6px] border border-white/10" />
+                <span class="text-[9px] text-pit-muted font-mono">{{ c }}</span>
+                <span v-if="i === 0" class="text-[9px] text-blue-400">Primär</span>
+                <span v-if="i === 1" class="text-[9px] text-purple-400">Akzent</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fonts -->
+          <div v-if="importResult.fonts.length">
+            <p class="text-[10px] font-medium text-pit-muted uppercase tracking-wider mb-2">Erkannte Schriftarten</p>
+            <div class="flex gap-2 flex-wrap">
+              <span
+                v-for="f in importResult.fonts" :key="f"
+                :style="{ fontFamily: `'${f}', system-ui` }"
+                class="px-2.5 py-1 bg-white/5 border border-white/8 rounded text-xs text-white"
+              >{{ f }}</span>
+            </div>
+          </div>
+
+          <!-- Tokens-Vorschau -->
+          <div class="bg-pit-bg rounded-[6px] p-3 font-mono text-[11px] space-y-0.5">
+            <div v-for="(val, key) in importResult.tokens" :key="key" class="flex gap-3">
+              <span class="text-pit-muted">{{ key }}:</span>
+              <span class="text-green-400">{{ val }}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-1">
+            <button
+              v-if="!importApplied"
+              @click="applyDesign"
+              class="flex items-center gap-1.5 px-4 py-2 rounded-[6px] text-xs font-medium bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 transition-colors"
+            >
+              <Palette class="w-3.5 h-3.5" />
+              Design auf Frontend anwenden
+            </button>
+            <span v-else class="text-xs text-green-400">✓ Design wurde übernommen — Frontend aktualisiert sich beim nächsten Aufruf</span>
+          </div>
+        </div>
+
+        <div v-else class="px-4 py-5 text-sm text-pit-muted text-center">
+          Keine verwertbaren Design-Tokens in <code class="text-xs">theme.json</code> oder <code class="text-xs">style.css</code> gefunden.
         </div>
       </div>
     </div>
@@ -171,20 +284,30 @@ function fmtInstalls(n: number) {
               <Star class="w-8 h-8 text-pit-muted opacity-30" />
             </div>
             <!-- Hover Overlay -->
-            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+              <div class="flex gap-2">
+                <button
+                  @click="activateTheme(t)"
+                  :disabled="activating === t.stylesheet"
+                  class="px-3 py-1.5 rounded text-[11px] font-medium bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-40"
+                >
+                  {{ activating === t.stylesheet ? '…' : 'Aktivieren' }}
+                </button>
+                <button
+                  @click="deleteTheme(t)"
+                  :disabled="deleting === t.stylesheet"
+                  class="p-1.5 rounded bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                </button>
+              </div>
               <button
-                @click="activateTheme(t)"
-                :disabled="activating === t.stylesheet"
-                class="px-3 py-1.5 rounded text-[11px] font-medium bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-40"
+                @click="analyzeTheme(t.stylesheet)"
+                :disabled="analyzing === t.stylesheet"
+                class="flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-medium bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 transition-colors disabled:opacity-40"
               >
-                {{ activating === t.stylesheet ? '…' : 'Aktivieren' }}
-              </button>
-              <button
-                @click="deleteTheme(t)"
-                :disabled="deleting === t.stylesheet"
-                class="p-1.5 rounded bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-40"
-              >
-                <Trash2 class="w-3.5 h-3.5" />
+                <Palette class="w-3 h-3" />
+                {{ analyzing === t.stylesheet ? '…' : 'Design übernehmen' }}
               </button>
             </div>
           </div>

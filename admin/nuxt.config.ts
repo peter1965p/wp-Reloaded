@@ -9,6 +9,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     wpUser: '',
     wpAppPassword: '',
+    wpContentPath: '',
     public: {
       wpApiBase: 'http://localhost/wp-json/wp/v2',
     },
