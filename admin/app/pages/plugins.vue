@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Search, Download, Trash2, Power, PowerOff, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { Search, Download, Trash2, Power, PowerOff, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-vue-next'
 
 definePageMeta({ title: 'Plugins' })
 
@@ -22,14 +22,26 @@ interface WpOrgPlugin {
   icons: { '1x'?: string; '2x'?: string; default?: string }
 }
 
-const { data: plugins, refresh } = await useAsyncData('wp-plugins', () =>
-  $fetch<WpPlugin[]>('/api/plugins')
-)
+interface PluginUpdate {
+  new_version: string
+  url: string
+  slug: string
+}
+
+const [{ data: plugins, refresh }, { data: updates, refresh: refreshUpdates }] = await Promise.all([
+  useAsyncData('wp-plugins', () => $fetch<WpPlugin[]>('/api/plugins')),
+  useAsyncData('wp-plugin-updates', () => $fetch<Record<string, PluginUpdate>>('/api/plugin-updates')),
+])
 
 const toggling   = ref<string | null>(null)
 const deleting   = ref<string | null>(null)
 const installing = ref<string | null>(null)
+const updating   = ref<string | null>(null)
 const actionErr  = ref('')
+
+function getUpdate(plugin: WpPlugin): PluginUpdate | null {
+  return updates.value?.[plugin.plugin] ?? null
+}
 
 const active   = computed(() => plugins.value?.filter(p => p.status === 'active') ?? [])
 const inactive = computed(() => plugins.value?.filter(p => p.status === 'inactive') ?? [])
@@ -122,6 +134,19 @@ const pageNumbers = computed(() => {
   pages.push(total)
   return pages
 })
+
+async function updatePlugin(plugin: WpPlugin) {
+  updating.value  = plugin.plugin
+  actionErr.value = ''
+  try {
+    await $fetch('/api/plugin-updates', { method: 'POST', body: { plugin: plugin.plugin } })
+    await Promise.all([refresh(), refreshUpdates(), refreshNuxtData('plugin-menu')])
+  } catch (e: unknown) {
+    actionErr.value = `Update fehlgeschlagen: ` + ((e as Error)?.message ?? 'Fehler')
+  } finally {
+    updating.value = null
+  }
+}
 
 async function installPlugin(slug: string, name: string) {
   installing.value = slug
@@ -272,38 +297,64 @@ function pluginIcon(p: WpOrgPlugin) {
     <div class="pit-card overflow-hidden">
       <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
         <h2 class="font-semibold text-white">Aktive Plugins</h2>
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-green-500/15 text-green-400">{{ active.length }} aktiv</span>
+        <div class="flex items-center gap-2">
+          <span v-if="Object.keys(updates ?? {}).length" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-400">
+            {{ Object.keys(updates ?? {}).length }} Update{{ Object.keys(updates ?? {}).length > 1 ? 's' : '' }} verfügbar
+          </span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-green-500/15 text-green-400">{{ active.length }} aktiv</span>
+        </div>
       </div>
       <div class="divide-y divide-white/5">
         <div v-if="!active.length" class="px-5 py-6 text-center text-pit-muted text-sm">Keine aktiven Plugins.</div>
         <div
           v-for="p in active"
           :key="p.plugin"
-          class="flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.02] transition-colors group"
+          class="transition-colors group"
+          :class="getUpdate(p) ? 'bg-amber-500/[0.03] hover:bg-amber-500/[0.06]' : 'hover:bg-white/[0.02]'"
         >
-          <div class="flex-1 min-w-0 mr-4">
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-white">{{ p.name }}</span>
-              <span class="text-[10px] text-pit-muted bg-white/5 px-1.5 py-0.5 rounded">v{{ p.version }}</span>
+          <!-- Haupt-Zeile -->
+          <div class="flex items-center justify-between px-5 py-3.5">
+            <div class="flex-1 min-w-0 mr-4">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm font-medium text-white">{{ p.name }}</span>
+                <span class="text-[10px] text-pit-muted bg-white/5 px-1.5 py-0.5 rounded">v{{ p.version }}</span>
+                <span v-if="getUpdate(p)" class="inline-flex items-center gap-1 text-[10px] font-medium text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-full">
+                  <RefreshCw class="w-2.5 h-2.5" />
+                  v{{ getUpdate(p)!.new_version }} verfügbar
+                </span>
+              </div>
+              <p class="text-[11px] text-pit-muted/60 mt-0.5">von {{ p.author?.replace(/<[^>]*>/g, '') }}</p>
             </div>
-            <p class="text-[11px] text-pit-muted/60 mt-0.5">von {{ p.author?.replace(/<[^>]*>/g, '') }}</p>
-          </div>
-          <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-            <button
-              @click="toggle(p)"
-              :disabled="toggling === p.plugin"
-              class="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[11px] font-medium bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors disabled:opacity-40"
-            >
-              <PowerOff class="w-3.5 h-3.5" />
-              {{ toggling === p.plugin ? '…' : 'Deaktivieren' }}
-            </button>
-            <button
-              @click="deletePlugin(p)"
-              :disabled="deleting === p.plugin"
-              class="p-1.5 rounded text-[11px] font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40"
-            >
-              <Trash2 class="w-3.5 h-3.5" />
-            </button>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <!-- Update-Button: immer sichtbar wenn Update da -->
+              <button
+                v-if="getUpdate(p)"
+                @click="updatePlugin(p)"
+                :disabled="updating === p.plugin"
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[11px] font-semibold bg-amber-500/20 text-amber-300 hover:bg-amber-500/35 transition-colors disabled:opacity-40"
+              >
+                <RefreshCw class="w-3.5 h-3.5" :class="updating === p.plugin ? 'animate-spin' : ''" />
+                {{ updating === p.plugin ? 'Wird aktualisiert…' : 'Jetzt aktualisieren' }}
+              </button>
+              <!-- Deaktivieren + Löschen: nur on hover -->
+              <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  @click="toggle(p)"
+                  :disabled="toggling === p.plugin"
+                  class="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[11px] font-medium bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40"
+                >
+                  <PowerOff class="w-3.5 h-3.5" />
+                  {{ toggling === p.plugin ? '…' : 'Deaktivieren' }}
+                </button>
+                <button
+                  @click="deletePlugin(p)"
+                  :disabled="deleting === p.plugin"
+                  class="p-1.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -322,27 +373,42 @@ function pluginIcon(p: WpOrgPlugin) {
           class="flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.02] transition-colors group"
         >
           <div class="flex-1 min-w-0 mr-4">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <span class="text-sm font-medium text-white/50">{{ p.name }}</span>
               <span class="text-[10px] text-pit-muted/50 bg-white/5 px-1.5 py-0.5 rounded">v{{ p.version }}</span>
+              <span v-if="getUpdate(p)" class="inline-flex items-center gap-1 text-[10px] font-medium text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-full">
+                <RefreshCw class="w-2.5 h-2.5" />
+                v{{ getUpdate(p)!.new_version }} verfügbar
+              </span>
             </div>
           </div>
-          <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+          <div class="flex items-center gap-2 flex-shrink-0">
             <button
-              @click="toggle(p)"
-              :disabled="toggling === p.plugin"
-              class="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[11px] font-medium bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-40"
+              v-if="getUpdate(p)"
+              @click="updatePlugin(p)"
+              :disabled="updating === p.plugin"
+              class="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[11px] font-semibold bg-amber-500/20 text-amber-300 hover:bg-amber-500/35 transition-colors disabled:opacity-40"
             >
-              <Power class="w-3.5 h-3.5" />
-              {{ toggling === p.plugin ? '…' : 'Aktivieren' }}
+              <RefreshCw class="w-3.5 h-3.5" :class="updating === p.plugin ? 'animate-spin' : ''" />
+              {{ updating === p.plugin ? '…' : 'Aktualisieren' }}
             </button>
-            <button
-              @click="deletePlugin(p)"
-              :disabled="deleting === p.plugin"
-              class="p-1.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40"
-            >
-              <Trash2 class="w-3.5 h-3.5" />
-            </button>
+            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                @click="toggle(p)"
+                :disabled="toggling === p.plugin"
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[11px] font-medium bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-40"
+              >
+                <Power class="w-3.5 h-3.5" />
+                {{ toggling === p.plugin ? '…' : 'Aktivieren' }}
+              </button>
+              <button
+                @click="deletePlugin(p)"
+                :disabled="deleting === p.plugin"
+                class="p-1.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40"
+              >
+                <Trash2 class="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -110,6 +110,60 @@ add_action('rest_api_init', function () {
     ]);
 });
 
+// Plugin-Updates: gibt verfügbare Updates aus dem WP-Transient zurück + triggert Upgrades
+add_action('rest_api_init', function () {
+
+    // GET: Liste der verfügbaren Updates
+    register_rest_route('wp2026/v1', '/plugin-updates', [
+        'methods'             => 'GET',
+        'permission_callback' => fn() => current_user_can('update_plugins'),
+        'callback'            => function () {
+            $updates = get_site_transient('update_plugins');
+            $result  = [];
+            if (!empty($updates->response) && is_array($updates->response)) {
+                foreach ($updates->response as $file => $data) {
+                    $result[$file] = [
+                        'new_version' => $data->new_version ?? '',
+                        'url'         => $data->url         ?? '',
+                        'slug'        => $data->slug        ?? '',
+                    ];
+                }
+            }
+            return rest_ensure_response($result);
+        },
+    ]);
+
+    // POST: Plugin aktualisieren
+    register_rest_route('wp2026/v1', '/plugin-updates', [
+        'methods'             => 'POST',
+        'permission_callback' => fn() => current_user_can('update_plugins'),
+        'callback'            => function (WP_REST_Request $request) {
+            $plugin = sanitize_text_field($request->get_param('plugin'));
+            if (!$plugin) {
+                return new WP_Error('missing_plugin', 'Plugin-Pfad fehlt', ['status' => 400]);
+            }
+
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            require_once ABSPATH . 'wp-admin/includes/misc.php';
+            require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+
+            WP_Filesystem();
+
+            $upgrader = new Plugin_Upgrader(new Automatic_Upgrader_Skin());
+            $result   = $upgrader->upgrade($plugin);
+
+            if (is_wp_error($result)) {
+                return $result;
+            }
+            if ($result === false) {
+                return new WP_Error('upgrade_failed', 'Update fehlgeschlagen', ['status' => 500]);
+            }
+
+            return rest_ensure_response(['success' => true, 'plugin' => $plugin]);
+        },
+    ]);
+});
+
 // Dynamisches Plugin-Admin-Menü: gibt von Plugins registrierte WP-Admin-Seiten zurück
 add_action('rest_api_init', function () {
     register_rest_route('wp2026/v1', '/admin-menu', [
