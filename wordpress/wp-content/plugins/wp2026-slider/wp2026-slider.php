@@ -118,16 +118,122 @@ add_action('rest_api_init', function () {
     ]);
 });
 
-// WP-Admin-Chrome ausblenden wenn ?pit_embed=1 gesetzt ist
+// Bei ?pit_embed=1: X-Frame-Options entfernen + WP-Admin-Chrome ausblenden
+add_action('admin_init', function () {
+    if (!isset($_GET['pit_embed'])) return;
+    // WP setzt X-Frame-Options: SAMEORIGIN via send_frame_options_header() — das blockt
+    // unseren iframe (localhost:3000 ≠ localhost:80 = unterschiedliche Origins)
+    remove_action('admin_init', 'send_frame_options_header');
+    header_remove('X-Frame-Options');
+    header('Content-Security-Policy: frame-ancestors *');
+}, 0);
+
 add_action('admin_head', function () {
     if (!isset($_GET['pit_embed'])) return;
-    echo '<style>
-        #wpadminbar,#adminmenuwrap,#adminmenuback,#wpfooter,
-        .update-nag,.updated.notice,.notice-warning,.notice-info { display:none!important }
-        #wpcontent { margin-left:0!important }
-        #wpbody { padding-top:0!important }
-        html,body { overflow-x:hidden }
-    </style>';
+    // phpcs:disable
+    echo <<<'HTML'
+    <style>
+        /* ── WP-Chrome vollständig entfernen ── */
+        #wpadminbar, #adminmenuwrap, #adminmenuback, #wpfooter,
+        #screen-meta, #screen-meta-links,
+        #contextual-help-wrap, #contextual-help-link-wrap,
+        #screen-options-link-wrap,
+        .update-nag, .notice, .notice-warning, .notice-info,
+        .notice-error, .notice-success, .updated.notice,
+        #wpcf7-welcome-panel, .wpcf7-welcome-panel,
+        .welcome-panel-column-container, .welcome-panel-column,
+        .rank-math-notice, .rank-math-banner,
+        .rank-math-review-banner { display:none!important }
+
+        /* ── Layout ── */
+        html, body  { background:#1b2333!important; margin:0; padding:0; overflow-x:hidden }
+        #wpcontent  { margin-left:0!important; padding-left:0!important }
+        #wpbody     { padding-top:0!important }
+        #wpbody-content { padding-bottom:16px!important }
+        .wrap       { padding:20px 24px!important }
+
+        /* ── Seitentitel ── */
+        h1.wp-heading-inline {
+            color:#f1f5f9!important; font-size:1.2rem!important;
+            font-weight:600!important; line-height:1.4!important;
+        }
+        .page-title-action {
+            background:#3b82f6!important; color:#fff!important;
+            border-color:#2563eb!important; border-radius:6px!important;
+            text-decoration:none!important; padding:4px 10px!important; font-size:13px!important;
+        }
+
+        /* ── Tabellen ── */
+        .wp-list-table, .widefat { border-collapse:collapse!important; border:none!important }
+        .wp-list-table th, .widefat th {
+            background:#1e2d3d!important; color:#64748b!important;
+            border-bottom:1px solid #263044!important; font-weight:500!important;
+            text-transform:uppercase!important; font-size:11px!important; letter-spacing:.04em!important;
+        }
+        .wp-list-table td, .widefat td {
+            background:#1e2841!important; color:#cbd5e1!important;
+            border-bottom:1px solid #1e2d3d!important;
+        }
+        .wp-list-table tr:hover td { background:#243350!important }
+        .column-primary strong a { color:#e2e8f0!important; font-weight:500!important }
+
+        /* ── Buttons ── */
+        .tablenav, .tablenav-pages { color:#64748b!important; background:transparent!important }
+        .tablenav .button, .button, .button-secondary {
+            background:#1e2d3d!important; color:#94a3b8!important;
+            border:1px solid #334155!important; border-radius:5px!important; box-shadow:none!important;
+        }
+        .tablenav .button:hover { background:#263044!important; color:#e2e8f0!important }
+        input[type=checkbox] { accent-color:#3b82f6 }
+
+        /* ── Formularelemente ── */
+        input[type=text], input[type=search], select, textarea {
+            background:#1e2d3d!important; color:#f1f5f9!important;
+            border:1px solid #334155!important; border-radius:5px!important; box-shadow:none!important;
+        }
+        input[type=text]:focus, input[type=search]:focus, select:focus {
+            border-color:#3b82f6!important; outline:none!important;
+            box-shadow:0 0 0 2px rgba(59,130,246,.25)!important;
+        }
+
+        /* ── Links ── */
+        a { color:#60a5fa!important }
+        a:hover { color:#93c5fd!important }
+        .row-actions span a { color:#475569!important }
+        .row-actions span a:hover { color:#60a5fa!important }
+        .search-box input[type=search] { width:200px!important }
+    </style>
+    <script>
+    (function () {
+        function addEmbed(url) {
+            if (!url || url.startsWith('#') || url.startsWith('javascript')) return url;
+            try {
+                var u = new URL(url, location.href);
+                if (u.hostname === location.hostname) {
+                    u.searchParams.set('pit_embed', '1');
+                    return u.toString();
+                }
+            } catch (e) {}
+            return url;
+        }
+        function patchLinks() {
+            document.querySelectorAll('a[href]').forEach(function (a) {
+                a.href = addEmbed(a.href);
+            });
+            document.querySelectorAll('form').forEach(function (f) {
+                if (!f.querySelector('[name=pit_embed]')) {
+                    var h = document.createElement('input');
+                    h.type = 'hidden'; h.name = 'pit_embed'; h.value = '1';
+                    f.appendChild(h);
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', patchLinks);
+        new MutationObserver(patchLinks).observe(document.documentElement, { childList: true, subtree: true });
+    })();
+    </script>
+HTML;
+    // phpcs:enable
 });
 
 // Öffentlicher REST-Endpunkt: Slider-Status ohne Auth abrufbar
