@@ -12,11 +12,8 @@ interface Post {
   categories: number[]
 }
 
-const config = useRuntimeConfig()
-const base = config.public.wpApiBase as string
-
 const { data: posts } = await useAsyncData('all-blog-posts', () =>
-  $fetch<Post[]>(`${base}/posts?per_page=50&status=publish`)
+  $fetch<Post[]>('/api/posts', { query: { per_page: 50, status: 'publish' } })
 )
 
 function formatDate(d: string) {

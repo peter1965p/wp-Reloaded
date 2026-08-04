@@ -4,8 +4,10 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss'],
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
+    // Server-only — läuft nie im Browser, damit gibt's kein Cross-Origin-Problem,
+    // wenn WordPress und dieses Frontend auf unterschiedlichen Domains laufen.
+    wpApiBase: 'http://localhost/wp-json/wp/v2',
     public: {
-      wpApiBase: 'http://localhost/wp-json/wp/v2',
       siteUrl: 'http://localhost:3001',
     },
   },

@@ -13,11 +13,9 @@ interface Post {
 }
 
 const route = useRoute()
-const config = useRuntimeConfig()
-const base = config.public.wpApiBase as string
 
 const { data: post, error } = await useAsyncData(`post-${route.params.slug}`, async () => {
-  const posts = await $fetch<Post[]>(`${base}/posts?slug=${route.params.slug}&status=publish`)
+  const posts = await $fetch<Post[]>('/api/posts', { query: { slug: route.params.slug, status: 'publish' } })
   if (!posts.length) throw createError({ statusCode: 404 })
   return posts[0]!
 })

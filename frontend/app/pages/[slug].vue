@@ -10,11 +10,9 @@ interface WpPage {
 }
 
 const route = useRoute()
-const config = useRuntimeConfig()
-const base = config.public.wpApiBase as string
 
 const { data: page, error } = await useAsyncData(`page-${route.params.slug}`, async () => {
-  const pages = await $fetch<WpPage[]>(`${base}/pages?slug=${route.params.slug}`)
+  const pages = await $fetch<WpPage[]>('/api/pages', { query: { slug: route.params.slug } })
   if (!pages.length) throw createError({ statusCode: 404 })
   return pages[0]!
 })

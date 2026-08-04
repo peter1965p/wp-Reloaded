@@ -4,10 +4,6 @@ useSeoMeta({
   description: 'Professionelle WordPress-Entwicklung, individuelle Webprojekte und IT-Beratung aus der Eifel.',
 })
 
-const config = useRuntimeConfig()
-const base    = config.public.wpApiBase as string
-const baseRoot = base.replace('/wp/v2', '')
-
 interface Post {
   id: number; slug: string
   title: { rendered: string }
@@ -26,13 +22,13 @@ interface Slide {
 
 const [{ data: posts }, { data: slides }, { data: sliderStatus }] = await Promise.all([
   useAsyncData('home-posts', () =>
-    $fetch<Post[]>(`${base}/posts?per_page=3&status=publish&_embed=1`)
+    $fetch<Post[]>('/api/posts', { query: { per_page: 3, status: 'publish', _embed: 1 } })
   ),
   useAsyncData('home-slides', () =>
-    $fetch<Slide[]>(`${base}/slides?per_page=20&orderby=menu_order&order=asc&status=publish`)
+    $fetch<Slide[]>('/api/slides', { query: { per_page: 20, orderby: 'menu_order', order: 'asc', status: 'publish' } })
   ),
   useAsyncData('slider-status', () =>
-    $fetch<{ enabled: boolean }>(`${baseRoot}/wp2026/v1/slider-status`).catch(() => ({ enabled: true }))
+    $fetch<{ enabled: boolean }>('/api/slider-status')
   ),
 ])
 

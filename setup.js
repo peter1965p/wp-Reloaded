@@ -313,7 +313,7 @@ const server = http.createServer(async (req, res) => {
         `NUXT_WP_CONTENT_PATH=${wpContentPath}\n`
       )
       fs.writeFileSync(path.join(__dirname, 'frontend', '.env'),
-        `NUXT_PUBLIC_WP_API_BASE=${data.wpUrl}/wp-json/wp/v2\n` +
+        `NUXT_WP_API_BASE=${data.wpUrl}/wp-json/wp/v2\n` +
         `NUXT_PUBLIC_SITE_URL=${data.siteUrl}\n`
       )
 
