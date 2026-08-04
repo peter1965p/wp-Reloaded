@@ -8,6 +8,7 @@ WordPress als reines Backend (REST-API), Admin und Frontend komplett eigenständ
 - `admin/` — Nuxt-Dashboard (Port 3000). Ersetzt wp-admin komplett.
 - `frontend/` — öffentliche Website (Nuxt, Port 3001).
 - `setup.js` — Setup-Assistent (`npm run setup`, startet Browser-Wizard auf Port 4000), schreibt `wordpress/wp-config.php` und beide `.env`-Dateien.
+- `docker-compose.yml` + `Caddyfile` + `install.sh` — Deploy-Variante C für einen eigenen VPS mit Root-Zugriff (WordPress + MariaDB + Caddy für automatisches HTTPS). Braucht echten Root-Zugriff/Docker-Unterstützung — funktioniert **nicht** auf klassischem Shared Hosting (z.B. United Domains bietet nur Shared-/Managed-Hosting an, kein VPS/Root/Docker).
 
 ## Kritisches Architekturmuster: Server-Proxy statt direktem Client-Fetch
 

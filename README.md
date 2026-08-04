@@ -154,9 +154,35 @@ Die drei Teile werden **getrennt** deployt und können auf komplett unterschiedl
 
 6. Im WP-Adminbereich einmal unter **Einstellungen → Permalinks** speichern, damit `/wp-json/...` sauber geroutet wird, und unter **Benutzer → Profil → Anwendungspasswörter** das Application Password für `admin`/`frontend` erzeugen.
 
-### Variante B — Managed/Shared Hosting (z.B. All-Inkl, IONOS, Strato)
+### Variante B — Managed/Shared Hosting (z.B. All-Inkl, IONOS, United Domains "Webspace")
 
 Genau wie eine normale WordPress-Installation: Dateien aus `wordpress/` per FTP/SFTP in das Webspace-Verzeichnis hochladen, Datenbank im Hosting-Panel anlegen, `wp-config.php` mit den vom Hoster vergebenen DB-Zugangsdaten befüllen. Kein SSH/Root-Zugriff nötig — funktioniert überall dort, wo normales WordPress auch läuft.
+
+> Bei Hostern mit sowohl klassischem Webspace als auch einem "Managed WordPress"-Produkt (z.B. United Domains): das normale **Webspace**-Produkt nehmen, nicht das Managed-WordPress-Angebot. Managed-WP-Pakete sperren häufig genau das, was hier gebraucht wird — eigene Plugins per FTP hochladen, Application Passwords für die REST-API.
+
+### Variante C — Docker auf einem eigenen VPS (empfohlen für "ein Befehl, fertig")
+
+Setzt einen Server mit Root-Zugriff voraus (Shared Hosting reicht hier **nicht**, auch nicht bei Hostern wie United Domains, die kein Docker/Root anbieten) — z.B. ein günstiger VPS bei Hetzner, Netcup, IONOS oder Strato (die S- oder M-Größe reicht für dieses Projekt komfortabel, XS mit nur 2GB RAM ist ohne Puffer knapp).
+
+Auf dem frischen Server, per SSH:
+
+```bash
+git clone git@github.com:peter1965p/wp-Reloaded.git
+cd wp-Reloaded
+./install.sh deine-domain.de
+```
+
+`install.sh` installiert bei Bedarf Docker, erzeugt zufällige Datenbank-Passwörter, und startet drei Container:
+
+- **`db`** — MariaDB
+- **`wordpress`** — offizielles WordPress-Image, `wp-content` wird aus dem Repo eingebunden (das eigene `wp2026-slider`-Plugin ist damit sofort da)
+- **`caddy`** — Reverse Proxy, holt automatisch ein Let's-Encrypt-Zertifikat für die angegebene Domain — HTTPS ohne manuelle Konfiguration
+
+Einzige Voraussetzung: die Domain muss per DNS (A-Record) bereits auf die Server-IP zeigen, bevor das Skript läuft, sonst kann Let's Encrypt das Zertifikat nicht ausstellen.
+
+Danach wie gewohnt: `https://deine-domain.de` öffnen für die WordPress-5-Minuten-Installation, Application Password erzeugen, `admin`/`frontend` separat deployen (siehe unten).
+
+Manueller Start ohne `install.sh` (z.B. um die generierten Passwörter selbst zu setzen): `.env.example` nach `.env` kopieren, Werte eintragen, `docker compose up -d`.
 
 ### Admin + Frontend deployen
 
