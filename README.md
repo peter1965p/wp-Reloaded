@@ -1,5 +1,7 @@
 # WP-Reloaded
 
+![WP-Reloaded](screenshots/wp-reloaded.png)
+
 **WordPress. Aber ohne den Teil, der nervt.**
 
 WP-Reloaded ist echtes, unverändertes WordPress im Kern – Content-Verwaltung, Datenbank, REST-API, das komplette Plugin-Ökosystem bleiben, wie sie sind. Was verschwindet, ist alles, was WordPress nach außen und innen wie WordPress aussehen lässt: kein PHP-Templating, kein wp-admin, kein Theme-System im klassischen Sinn.
@@ -22,6 +24,18 @@ Keine neuen Plugins, keine Zusatz-APIs, kein Extra-Werkzeug aus dem WordPress-Ö
 WordPress von Grund auf neu gedacht, nicht neu erfunden: Der Kern bleibt, weil er robust ist. Alles, was WordPress alt, langsam und angestaubt wirken lässt, ist ersetzt – durch etwas, das WordPress selbst nie gebaut hat.
 
 Kein neues CMS. Kein Fork. WordPress, neu zusammengesteckt.
+
+## Vorher / Nachher
+
+| Klassisches wp-admin | WP-Reloaded Dashboard |
+|---|---|
+| ![wp-admin](screenshots/admin.reload.png) | ![WP-Reloaded Dashboard](screenshots/wp-admin.reloaded.png) |
+
+Gleiche Daten, gleiche Plugins, gleiche WordPress-Installation dahinter — nur ohne die klassische wp-admin-Oberfläche.
+
+**Öffentliches Frontend** (Nuxt, kein PHP-Theme):
+
+![Frontend](screenshots/wp-reloaded.frontend.png)
 
 ---
 
@@ -60,7 +74,11 @@ npm run setup
 `npm run setup` startet einen Setup-Assistenten im Browser (`http://localhost:4000`):
 
 1. Datenbank-Zugangsdaten eingeben → `wordpress/wp-config.php` wird automatisch erstellt.
-2. WordPress-Adresse + Application Password eingeben (in WP unter *Benutzer → Profil → Anwendungspasswörter* erzeugen) → `admin/.env` und `frontend/.env` werden automatisch geschrieben, `npm install` läuft automatisch mit durch.
+2. Danach einmal `wordpress/` im Browser aufrufen (z.B. `php -S localhost:8000` im Ordner starten und öffnen) — WordPress zeigt beim allerersten Aufruf seine eigene, klassische 5-Minuten-Installation (Website-Titel, Admin-Benutzername/-Passwort):
+
+   ![WordPress-Installation](screenshots/Setup_Reloaded_Perfekt.png)
+
+3. Zurück im Setup-Assistenten: WordPress-Adresse + Application Password eingeben (in WP unter *Benutzer → Profil → Anwendungspasswörter* erzeugen) → `admin/.env` und `frontend/.env` werden automatisch geschrieben, `npm install` läuft automatisch mit durch.
 
 Danach ist alles startbereit.
 
